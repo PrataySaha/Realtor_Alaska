@@ -1,1 +1,29 @@
-Realor Scraping by using Scrapy
+#Realtor Scraping by using Scrapy
+import scrapy
+from scrapy.linkextractors import LinkExtractor
+from scrapy.spiders import CrawlSpider, Rule
+
+class HouseSpider(CrawlSpider):
+    name = "HouseAlaska"
+    start_urls = ["https://www.realtor.com/realestateandhomes-search/Alaska/pg-1"]
+ 
+    rules = (
+        Rule(LinkExtractor(restrict_xpaths = '//div[@data-testid="pc-photo-wrap"]/a'), callback="parse_item", follow=True),
+        Rule(LinkExtractor(restrict_xpaths='//a[@aria-label="Go to next page"]'), follow = True),
+    )
+    def parse_item(self, response):
+        yield{
+            'Address' : response.xpath('//h1[@class="Text__StyledText-rui__sc-19ei9fn-0 dEYYQ TypeBody__StyledBody-rui__sc-163o7f1-0 gVxVge"]/text()').get(),
+            'Price' : response.xpath('//div[@class="Price__Component-rui__x3geed-0 gipzbd"]/text()').get(),
+            'Bed':response.xpath('//li[@data-testid="property-meta-beds"]/span/text()').extract_first(),
+            'Bathroom':response.xpath('//li[@data-testid="property-meta-baths"]/span/text()').extract_first(),
+            'Flat_Size':response.xpath('//span[@class="meta-value"]/text()').extract_first(),
+            'Flat_Size_sqft':response.xpath('(//li[@data-testid="property-meta-sqft"])/span[1]/text()').get(),
+            'Land_Size':response.xpath('(//span[@class="meta-value"])[2]/text()').extract_first(),
+            'Land_Size_Sqft/Acre_lot': response.xpath('(//li[@data-testid="property-meta-lot-size"])/span[1]/text()').get(),
+            'Property_Type': response.xpath('(//div[@class="Text__StyledText-rui__sc-19ei9fn-0 eXfzyb TypeBody__StyledBody-rui__sc-163o7f1-0 gVxVge"])[1]/text()').extract_first(),
+            'HOA_Fees':response.xpath('(//li[contains(., "HOA Fees")]/div/div[2])/text()').extract_first(),
+            'Price_per_sqft':response.xpath('(//li[contains(., "Price per sqft")]/div/div[2])/text()').extract_first(),
+            'Year_Built':response.xpath('(//li[contains(., "Year Built")]/div/div[2])/text()').extract_first()
+        }
+      
